@@ -1,0 +1,16 @@
+City,Country Code,Date,Weather,Max Temperature (°C),Min Temperature (°C),Feels Like (°C),Humidity (%),Wind Speed (m/s)
+karachi,pk,2024-11-20,Sunny,29.70,24.80,26.90,54,6.19
+karachi,pk,2024-11-21,Sunny,29.30,24.70,26.70,59,5.31
+karachi,pk,2024-11-22,Sunny,29.10,24.50,26.50,57,5.50
+sibi,pk,2024-11-20,Patchy rain nearby,12.70,3.80,8.10,63,5.69
+sibi,pk,2024-11-21,Moderate or heavy snow showers,1.30,-5.80,-0.60,90,6.00
+sibi,pk,2024-11-22,Patchy rain nearby,3.00,-5.90,-0.10,85,6.81
+london,gb,2024-11-20,Partly Cloudy ,4.70,0.70,2.10,67,5.11
+london,gb,2024-11-21,Partly Cloudy ,4.50,0.70,2.10,57,4.89
+london,gb,2024-11-22,Sunny,6.00,2.00,3.30,74,5.81
+lahore,pk,2024-11-20,Sunny,26.80,15.20,20.50,23,2.31
+lahore,pk,2024-11-21,Sunny,27.40,15.60,20.90,23,2.39
+lahore,pk,2024-11-22,Sunny,28.00,16.20,21.40,25,3.31
+sibi,pk,2024-11-20,Patchy rain nearby,12.70,3.80,8.10,63,5.69
+sibi,pk,2024-11-21,Moderate or heavy snow showers,1.30,-5.80,-0.60,90,6.00
+sibi,pk,2024-11-22,Patchy rain nearby,3.00,-5.90,-0.10,85,6.81
