@@ -1,4 +1,4 @@
-#include "weather.h"
+#include "environment_header.h"
 
 // Initialize the string to handle the curl response
 void init_string(struct string* s) {
@@ -70,7 +70,7 @@ void save_to_csv(const char* city, const char* country_code, const char* date, c
         fseek(file, 0, SEEK_END);
         long file_size = ftell(file);
         if (file_size == 0) {
-            fprintf(file, "City,Country Code,Date,Weather,Max Temperature (캜),Min Temperature (캜),Feels Like (캜),Humidity (%%),Wind Speed (m/s)\n");
+            fprintf(file, "City,Country Code,Date,Weather,Max Temperature (째C),Min Temperature (째C),Feels Like (째C),Humidity (%%),Wind Speed (m/s)\n");
         }
         fprintf(file, "%s,%s,%s,%s,%.2lf,%.2lf,%.2lf,%d,%.2lf\n", city, country_code, date, description, temp_max, temp_min, feels_like, humidity, wind_speed);
         fclose(file);
@@ -141,14 +141,14 @@ void calculate_and_display_averages(cJSON* weather_json, int days_count) {
     printf("\n=======================================\n");
     printf("               AVERAGE WEATHER\n");
     printf("=======================================\n");
-    printf("| %-35s | %.2lf 캜      |\n", "Average Max Temperature", avg_temp_max);
-    printf("| %-35s | %.2lf 캜      |\n", "Average Min Temperature", avg_temp_min);
+    printf("| %-35s | %.2lf 째C      |\n", "Average Max Temperature", avg_temp_max);
+    printf("| %-35s | %.2lf 째C      |\n", "Average Min Temperature", avg_temp_min);
     printf("| %-35s | %.2lf kph     |\n", "Average Wind Speed", avg_wind_speed); // Changed to display wind speed
     printf("| %-35s | %.2lf %%      |\n", "Average Humidity", avg_humidity);
     printf("=======================================\n\n");
     printf("Total Max Temp: %.2lf, Total Wind Speed: %.2lf\n", total_temp_max, total_wind_speed);
 
-    const double temp_threshold = 25.0;  // Adjusted temperature threshold (캜)
+    const double temp_threshold = 25.0;  // Adjusted temperature threshold (째C)
     const double wind_speed_threshold = 27.0;  // Adjusted wind speed threshold (m/s)
 
 
@@ -157,7 +157,7 @@ void calculate_and_display_averages(cJSON* weather_json, int days_count) {
     if (avg_temp_max > temp_threshold) {
 
         char message[256];
-        snprintf(message, sizeof(message), "The average temperature has exceeded %.2lf캜. Current: %.2lf캜", temp_threshold, avg_temp_max);
+        snprintf(message, sizeof(message), "The average temperature has exceeded %.2lf째C. Current: %.2lf째C", temp_threshold, avg_temp_max);
 
         // Sanitize the message to remove non-printable characters
         sanitize_string(message);
@@ -210,9 +210,9 @@ void extract_weather_details(cJSON* weather_json, char* city, char* country_code
         printf("Date: %s\n", date);
         printf("City: %s, Country Code: %s\n", city, country_code);
         printf("Weather: %s\n", description);
-        printf("Max Temperature: %.2lf캜\n", temp_max);
-        printf("Min Temperature: %.2lf캜\n", temp_min);
-        printf("Feels Like: %.2lf캜\n", feels_like);
+        printf("Max Temperature: %.2lf째C\n", temp_max);
+        printf("Min Temperature: %.2lf째C\n", temp_min);
+        printf("Feels Like: %.2lf째C\n", feels_like);
         printf("Humidity: %d%%\n", humidity);
         printf("Wind Speed: %.2lf m/s\n\n", wind_speed);
 
