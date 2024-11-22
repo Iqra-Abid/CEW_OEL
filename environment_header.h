@@ -1,5 +1,5 @@
-#ifndef WEATHER_H
-#define WEATHER_H
+#ifndef ENVIRONMENT_HEADER_H
+#define ENVIRONMENT_HEADER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,4 +22,4 @@ void save_raw_json(const char* json_data);
 void fetch_data(char* city, char* country_code, char* api_key);
 void calculate_and_display_averages(cJSON* weather_json, int days_count);
 
-#endif // WEATHER_H#pragma once
+#endif // ENVIRONMENT_HEADER_H
