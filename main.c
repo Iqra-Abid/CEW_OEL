@@ -26,21 +26,6 @@ size_t writefunc(void* ptr, size_t size, size_t nmemb, struct string* s) {
     return size * nmemb;
 }
 
-//// Modified send_notification function
-//void send_notification(const char* title, const char* message) {
-//    char command[512];
-//    // Format the shell command to call send_email.sh with parameters
-//    snprintf(command, sizeof(command), "./send_email.sh '%s' '%s'", title, message);
-//
-//    // Log the command being executed
-//    printf("Executing: %s\n", command);
-//
-//    // Execute the shell script to send the notification
-//    int result = system(command);
-//    if (result == -1) {
-//        fprintf(stderr, "Error executing the shell script for notification.\n");
-//    }
-//}
 void send_notification(const char* title, const char* message) {
     char command[512];
 
@@ -148,8 +133,8 @@ void calculate_and_display_averages(cJSON* weather_json, int days_count) {
     printf("=======================================\n\n");
     printf("Total Max Temp: %.2lf, Total Wind Speed: %.2lf\n", total_temp_max, total_wind_speed);
 
-    const double temp_threshold = 25.0;  // Adjusted temperature threshold (°C)
-    const double wind_speed_threshold = 27.0;  // Adjusted wind speed threshold (m/s)
+    const double temp_threshold = 18.0;  // Adjusted temperature threshold (°C)
+    const double wind_speed_threshold = 15.0;  // Adjusted wind speed threshold (m/s)
 
 
 
@@ -178,22 +163,44 @@ void calculate_and_display_averages(cJSON* weather_json, int days_count) {
 }
 
 
-
-// Extract and display weather details for the forecast
-void extract_weather_details(cJSON* weather_json, char* city, char* country_code) {
-    cJSON* forecast_array = cJSON_GetObjectItem(weather_json, "forecast");
-    if (!forecast_array) {
-        fprintf(stderr, "Error: Forecast data not found in JSON.\n");
-        return;
+void print_line(int width, char ch) {
+    for (int i = 0; i < width; i++) {
+        printf("%c", ch);
     }
+    printf("\n");
+}
 
-    cJSON* days_array = cJSON_GetObjectItem(forecast_array, "forecastday");
-    if (!days_array) {
-        fprintf(stderr, "Error: Forecast day data not found in JSON.\n");
+void print_boxed(const char* title, const char* content) {
+    int width = 50;
+    printf("+");
+    print_line(width - 2, '-');
+    printf("| %-46s |\n", title);
+    printf("+");
+    print_line(width - 2, '-');
+    printf("| %-46s |\n", content);
+    printf("+");
+    print_line(width - 2, '-');
+}
+
+
+// Existing helper functions (init_string, writefunc, etc.) remain unchanged.
+
+void save_parsed_data(const char* city, const char* country_code, cJSON* days_array) {
+    FILE* file = fopen("raw.txt", "w");
+    if (file == NULL) {
+        fprintf(stderr, "Error: Could not open file raw.txt for writing.\n");
         return;
     }
 
     int days_count = cJSON_GetArraySize(days_array);
+
+    fprintf(file, "+----------------------------------------------------+\n");
+    fprintf(file, "|                 WEATHER FORECAST                   |\n");
+    fprintf(file, "+----------------------------------------------------+\n");
+    fprintf(file, "| City             : %-30s |\n", city);
+    fprintf(file, "| Country          : %-30s |\n", country_code);
+    fprintf(file, "+----------------------------------------------------+\n");
+
     for (int i = 0; i < days_count; i++) {
         cJSON* day_data = cJSON_GetArrayItem(days_array, i);
         const char* date = cJSON_GetObjectItem(day_data, "date")->valuestring;
@@ -207,14 +214,65 @@ void extract_weather_details(cJSON* weather_json, char* city, char* country_code
         int humidity = cJSON_GetObjectItem(day, "avghumidity")->valueint;
         double wind_speed = cJSON_GetObjectItem(day, "maxwind_kph")->valuedouble / 3.6;
 
-        printf("Date: %s\n", date);
-        printf("City: %s, Country Code: %s\n", city, country_code);
-        printf("Weather: %s\n", description);
-        printf("Max Temperature: %.2lf°C\n", temp_max);
-        printf("Min Temperature: %.2lf°C\n", temp_min);
-        printf("Feels Like: %.2lf°C\n", feels_like);
-        printf("Humidity: %d%%\n", humidity);
-        printf("Wind Speed: %.2lf m/s\n\n", wind_speed);
+        fprintf(file, "| Date             : %-30s |\n", date);
+        fprintf(file, "| Weather          : %-30s |\n", description);
+        fprintf(file, "| Max Temp         : %-30.2lf°C |\n", temp_max);
+        fprintf(file, "| Min Temp         : %-30.2lf°C |\n", temp_min);
+        fprintf(file, "| Feels Like       : %-30.2lf°C |\n", feels_like);
+        fprintf(file, "| Humidity         : %-30d%%  |\n", humidity);
+        fprintf(file, "| Wind Speed       : %-30.2lf m/s |\n", wind_speed);
+        fprintf(file, "+----------------------------------------------------+\n");
+    }
+
+    fclose(file);
+    printf("Parsed weather data has been saved to raw.txt successfully.\n");
+}
+
+void extract_weather_details(cJSON* weather_json, char* city, char* country_code) {
+    cJSON* forecast_array = cJSON_GetObjectItem(weather_json, "forecast");
+    if (!forecast_array) {
+        fprintf(stderr, "Error: Forecast data not found in JSON.\n");
+        return;
+    }
+
+    cJSON* days_array = cJSON_GetObjectItem(forecast_array, "forecastday");
+    if (!days_array) {
+        fprintf(stderr, "Error: Forecast day data not found in JSON.\n");
+        return;
+    }
+
+    // Save the parsed data to raw.txt
+    save_parsed_data(city, country_code, days_array);
+
+    int days_count = cJSON_GetArraySize(days_array);
+    printf("+----------------------------------------------------+\n");
+    printf("| %-50s |\n", "WEATHER FORECAST");
+    printf("+----------------------------------------------------+\n");
+
+    for (int i = 0; i < days_count; i++) {
+        cJSON* day_data = cJSON_GetArrayItem(days_array, i);
+        const char* date = cJSON_GetObjectItem(day_data, "date")->valuestring;
+        cJSON* day = cJSON_GetObjectItem(day_data, "day");
+        cJSON* condition = cJSON_GetObjectItem(day, "condition");
+
+        const char* description = cJSON_GetObjectItem(condition, "text")->valuestring;
+        double temp_max = cJSON_GetObjectItem(day, "maxtemp_c")->valuedouble;
+        double temp_min = cJSON_GetObjectItem(day, "mintemp_c")->valuedouble;
+        double feels_like = cJSON_GetObjectItem(day, "avgtemp_c")->valuedouble;
+        int humidity = cJSON_GetObjectItem(day, "avghumidity")->valueint;
+        double wind_speed = cJSON_GetObjectItem(day, "maxwind_kph")->valuedouble / 3.6;
+
+        printf("| %-50s |\n", date);
+        printf("+----------------------------------------------------+\n");
+        printf("| %-20s: %-25s |\n", "City", city);
+        printf("| %-20s: %-25s |\n", "Country", country_code);
+        printf("| %-20s: %-25s |\n", "Weather", description);
+        printf("| %-20s: %-25.2lf°C |\n", "Max Temp", temp_max);
+        printf("| %-20s: %-25.2lf°C |\n", "Min Temp", temp_min);
+        printf("| %-20s: %-25.2lf°C |\n", "Feels Like", feels_like);
+        printf("| %-20s: %-25d%%  |\n", "Humidity", humidity);
+        printf("| %-20s: %-25.2lf m/s |\n", "Wind Speed", wind_speed);
+        printf("+----------------------------------------------------+\n");
 
         save_to_csv(city, country_code, date, description, temp_max, temp_min, feels_like, humidity, wind_speed);
     }
@@ -222,6 +280,9 @@ void extract_weather_details(cJSON* weather_json, char* city, char* country_code
     // Call function to calculate and display averages
     calculate_and_display_averages(weather_json, days_count);
 }
+
+
+
 
 // Save raw JSON response to file
 void save_raw_json(const char* json_data) {
@@ -262,11 +323,11 @@ void fetch_data(char* city, char* country_code, char* api_key) {
             }
             else {
                 char view_forecast;
-                printf("Do you want to see the forecast? (y/n): ");
+                printf("Do you want to see the forecast? press 'y' for yes and 'n' for no: ");
                 scanf(" %c", &view_forecast);
 
                 if (view_forecast == 'y' || view_forecast == 'Y') {
-                    printf("Displaying forecast...\n");
+                    printf("Displaying weather forecast...\n");
                     extract_weather_details(weather_json, city, country_code);
                 }
                 else {
@@ -284,17 +345,16 @@ void fetch_data(char* city, char* country_code, char* api_key) {
 int main(void) {
     char city[100];
     char country_code[3];
-    char api_key[] = "0d02b9c3a02b45d4a91165418242110"; // Replace with your WeatherAPI key
+    char api_key[] = "d2723a330c0f466f886153406242211";  
 
-    printf("Enter city name: ");
+    printf("Enter your city name: ");
     fgets(city, sizeof(city), stdin);
     city[strcspn(city, "\n")] = 0;
 
-    printf("Enter country code: ");
+    printf("Enter city's country code: ");
     fgets(country_code, sizeof(country_code), stdin);
     country_code[strcspn(country_code, "\n")] = 0;
-    //    setenv("DISPLAY", ":0", 1);  // Or use the correct display value for your setup
-    //    setenv("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/1000/bus", 1);
+   
 
     fetch_data(city, country_code, api_key);
 
